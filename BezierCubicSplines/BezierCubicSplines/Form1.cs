@@ -15,9 +15,9 @@ namespace BezierCubicSplines
         private Graphics g;
         private SolidBrush brushRed = new SolidBrush(Color.Red);
         private SolidBrush brushBlack = new SolidBrush(Color.Black);
-        private Pen penHull = new Pen(Color.LightGoldenrodYellow, 1);
-        private Pen penCurve = new Pen(Color.Magenta, 1);
-        private List<PointF> points = new List<PointF>();
+        private Pen penControl = new Pen(Color.Black, 1);
+        private Pen penCurve = new Pen(Color.BlueViolet, 2);
+        private List<PointF> controlPolygon = new List<PointF>();
         PointF currentPoint = new PointF(float.NaN, float.NaN);
         PointF nap = new PointF(float.NaN, float.NaN);
         int ind = -1;
@@ -31,26 +31,19 @@ namespace BezierCubicSplines
             g.Clear(Color.White);
         }
 
-        private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
+        private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                PointF h = e.Location;
-                if (IsInRadius(ref h) && ind != (-1))
-                    points.Remove(points[ind]);
-                currentPoint = e.Location;
-                g.Clear(Color.White);
-            }
-            pictureBox1.Invalidate();
+
         }
+
 
         //попадает ли выбранная точка в радиус одной из уже добавленных
         bool IsInRadius(ref PointF e)
         {
             PointF p = new PointF(0, 0);
-            for(int i = 0;i < points.Count;i++)
+            for(int i = 0;i < controlPolygon.Count;i++)
             {
-                p = points[i];
+                p = controlPolygon[i];
                 if (p.X - 15 <= e.X && e.X <= p.X + 15 && p.Y - 15 <= e.Y && e.Y <= p.X + 15)
                 {
                     ind = i;
@@ -60,39 +53,61 @@ namespace BezierCubicSplines
             return false;
         }
 
-        private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-                currentPoint = e.Location;
-            pictureBox1.Invalidate();
-        }
-
-
-        private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                currentPoint = e.Location;
-                points.Add(currentPoint);
-                currentPoint = nap;
-            }
-            pictureBox1.Invalidate();
-        }
-
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            foreach (PointF p in points)
+            foreach (PointF p in controlPolygon)
             {
                 e.Graphics.FillEllipse(brushRed, p.X - 3, p.Y - 3, 7, 7);
             }
             e.Graphics.FillEllipse(brushBlack, currentPoint.X - 3, currentPoint.Y - 3, 7, 7);
+                if(controlPolygon.Count > 1)
+                    e.Graphics.DrawLines(penControl, controlPolygon.ToArray());
+            if (controlPolygon.Count >= 4)
+            {
+                PointF p0, p1, p2, p3;
+                p0 = controlPolygon[0];
+                p1 = controlPolygon[1];
+                p2 = controlPolygon[2];
+                p3 = controlPolygon[3];
+                e.Graphics.DrawLines(penCurve, calcaluteСurve(p0,p1,p2,p3));
+            }
+        }
+
+        private PointF[] calcaluteСurve(PointF p0, PointF p1, PointF p2, PointF p3)
+        {
+            float disc = (float)0.001;
+            int cnt = (int)(1 / disc) + 1;
+            PointF[] res = new PointF[cnt];
+
+            float t = 0;
+            for (int i = 0; i < cnt; i++)
+            {
+                float mt = 1 - t;
+                float mt2 = mt * mt;
+                float x;
+                float y;
+                float t2 = t * t;
+                x = p3.X * t2 * t;
+                y = p3.Y * t2 * t;
+                x += 3 * t2 * p2.X * mt;
+                y += 3 * t2 * p2.Y * mt;
+                x += 3 * t * p1.X * mt2;
+                y += 3 * t * p1.Y * mt2;
+                x += p0.X * mt2 * mt;
+                y += p0.Y * mt2 * mt;
+
+                t += disc;
+                res[i] = new PointF(x, y);
+            }
+            return res;
         }
 
         private void ClearBtn_Click(object sender, EventArgs e)
         {
             g.Clear(Color.White);
-            points.Clear();
+            controlPolygon.Clear();
             pictureBox1.Invalidate();
         }
+
     }
 }
