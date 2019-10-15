@@ -62,7 +62,7 @@ namespace BezierCubicSplines
                 int prev = i - 1; // p0
                 int next2 = i + 2; // p3 
 
-                if (prev == 0)
+                if (prev == 0) 
                     p0 = controlPolygon[prev];
                 else
                     p0 = new PointF((controlPolygon[i].X + controlPolygon[prev].X) / 2, (controlPolygon[i].Y + controlPolygon[prev].Y) / 2);
