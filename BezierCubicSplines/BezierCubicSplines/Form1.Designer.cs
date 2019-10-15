@@ -64,6 +64,7 @@
             this.PointslistBox.Name = "PointslistBox";
             this.PointslistBox.Size = new System.Drawing.Size(164, 420);
             this.PointslistBox.TabIndex = 2;
+            this.PointslistBox.SelectedIndexChanged += new System.EventHandler(this.PointslistBox_SelectedIndexChanged);
             // 
             // DeletePntBtn
             // 
@@ -73,6 +74,7 @@
             this.DeletePntBtn.TabIndex = 3;
             this.DeletePntBtn.Text = "Delete Point";
             this.DeletePntBtn.UseVisualStyleBackColor = true;
+            this.DeletePntBtn.Click += new System.EventHandler(this.DeletePntBtn_Click);
             // 
             // AddPointBtn
             // 
@@ -82,6 +84,7 @@
             this.AddPointBtn.TabIndex = 4;
             this.AddPointBtn.Text = "Add Point";
             this.AddPointBtn.UseVisualStyleBackColor = true;
+            this.AddPointBtn.Click += new System.EventHandler(this.AddPointBtn_Click);
             // 
             // Form1
             // 

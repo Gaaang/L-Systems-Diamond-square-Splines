@@ -18,9 +18,8 @@ namespace BezierCubicSplines
         private Pen penControl = new Pen(Color.Black, 1);
         private Pen penCurve = new Pen(Color.BlueViolet, 2);
         private List<PointF> controlPolygon = new List<PointF>();
-        PointF currentPoint = new PointF(float.NaN, float.NaN);
-        PointF nap = new PointF(float.NaN, float.NaN);
-        int ind = -1;
+        private PointF NotAPoint = new PointF(float.NaN, float.NaN);
+        private PointF currentPoint = new PointF(float.NaN, float.NaN);
 
         public Form1()
         {
@@ -33,35 +32,26 @@ namespace BezierCubicSplines
 
         private void pictureBox1_MouseClick(object sender, MouseEventArgs e)
         {
-
-        }
-
-
-        //попадает ли выбранная точка в радиус одной из уже добавленных
-        bool IsInRadius(ref PointF e)
-        {
-            PointF p = new PointF(0, 0);
-            for(int i = 0;i < controlPolygon.Count;i++)
+            if (PointslistBox.SelectedIndex == -1)
             {
-                p = controlPolygon[i];
-                if (p.X - 15 <= e.X && e.X <= p.X + 15 && p.Y - 15 <= e.Y && e.Y <= p.X + 15)
-                {
-                    ind = i;
-                    return true;
-                }
+                controlPolygon.Add(e.Location);
+                PointslistBox.Items.Add("Точка " + controlPolygon.Count.ToString());
             }
-            return false;
+            else
+            {
+                controlPolygon[PointslistBox.SelectedIndex] = e.Location;
+                currentPoint = e.Location;
+            }
         }
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             foreach (PointF p in controlPolygon)
             {
-                e.Graphics.FillEllipse(brushRed, p.X - 3, p.Y - 3, 7, 7);
+                e.Graphics.FillEllipse(brushBlack, p.X - 5, p.Y - 5, 10, 10);
             }
-            e.Graphics.FillEllipse(brushBlack, currentPoint.X - 3, currentPoint.Y - 3, 7, 7);
-                if(controlPolygon.Count > 1)
-                    e.Graphics.DrawLines(penControl, controlPolygon.ToArray());
+            if(controlPolygon.Count > 1)
+                e.Graphics.DrawLines(penControl, controlPolygon.ToArray());
             if (controlPolygon.Count >= 4)
             {
                 PointF p0, p1, p2, p3;
@@ -71,6 +61,9 @@ namespace BezierCubicSplines
                 p3 = controlPolygon[3];
                 e.Graphics.DrawLines(penCurve, calcaluteСurve(p0,p1,p2,p3));
             }
+            if(currentPoint.X != float.NaN)
+                e.Graphics.FillEllipse(brushRed, currentPoint.X - 5, currentPoint.Y - 5, 10, 10);
+            pictureBox1.Invalidate();
         }
 
         private PointF[] calcaluteСurve(PointF p0, PointF p1, PointF p2, PointF p3)
@@ -102,12 +95,39 @@ namespace BezierCubicSplines
             return res;
         }
 
+        private void PointslistBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (PointslistBox.SelectedIndex != -1)
+                currentPoint = controlPolygon[PointslistBox.SelectedIndex];
+            else
+                currentPoint = NotAPoint;
+        }
+
+        private void AddPointBtn_Click(object sender, EventArgs e)
+        {
+            PointslistBox.SelectedIndex = -1;
+        }
+
+        private void DeletePntBtn_Click(object sender, EventArgs e)
+        {
+            if (PointslistBox.SelectedIndex != -1)
+            {
+                controlPolygon.RemoveAt(PointslistBox.SelectedIndex);
+                for (int i = PointslistBox.SelectedIndex; i < PointslistBox.Items.Count; i++)
+                    PointslistBox.Items.Clear();
+                for (int i = 1; i <= controlPolygon.Count; i++)
+                    PointslistBox.Items.Add("Точка " + Convert.ToString(i));
+                currentPoint = NotAPoint;
+            }
+        }
+
         private void ClearBtn_Click(object sender, EventArgs e)
         {
             g.Clear(Color.White);
             controlPolygon.Clear();
+            PointslistBox.Items.Clear();
+            currentPoint = NotAPoint;
             pictureBox1.Invalidate();
         }
-
     }
 }
