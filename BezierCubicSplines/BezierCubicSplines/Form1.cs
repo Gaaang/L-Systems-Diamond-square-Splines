@@ -16,7 +16,8 @@ namespace BezierCubicSplines
         private SolidBrush brushRed = new SolidBrush(Color.Red);
         private SolidBrush brushBlack = new SolidBrush(Color.Black);
         private Pen penControl = new Pen(Color.Black, 1);
-        private Pen penCurve = new Pen(Color.BlueViolet, 2);
+        private Pen penCubeCurve = new Pen(Color.BlueViolet, 2);
+        private Pen penCurve = new Pen(Color.Green, 2);
         private List<PointF> controlPolygon = new List<PointF>();
         private PointF NotAPoint = new PointF(float.NaN, float.NaN);
         private PointF currentPoint = new PointF(float.NaN, float.NaN);
@@ -46,54 +47,121 @@ namespace BezierCubicSplines
 
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            foreach (PointF p in controlPolygon)
+            foreach (PointF p in controlPolygon)//контрольные точки
             {
                 e.Graphics.FillEllipse(brushBlack, p.X - 5, p.Y - 5, 10, 10);
             }
             if(controlPolygon.Count > 1)
-                e.Graphics.DrawLines(penControl, controlPolygon.ToArray());
-            if (controlPolygon.Count >= 4)
+                e.Graphics.DrawLines(penControl, controlPolygon.ToArray());//соединяем контрольные точки в порядке следования
+
+            //
+            for (int i = 1; i < controlPolygon.Count - 1; i += 2)
             {
                 PointF p0, p1, p2, p3;
-                p0 = controlPolygon[0];
-                p1 = controlPolygon[1];
-                p2 = controlPolygon[2];
-                p3 = controlPolygon[3];
-                e.Graphics.DrawLines(penCurve, calcaluteСurve(p0,p1,p2,p3));
+
+                int prev = i - 1; // p0
+                int next2 = i + 2; // p3 
+
+                if (prev == 0)
+                    p0 = controlPolygon[prev];
+                else
+                    p0 = new PointF((controlPolygon[i].X + controlPolygon[prev].X) / 2, (controlPolygon[i].Y + controlPolygon[prev].Y) / 2);
+
+                if (i == controlPolygon.Count - 2)
+                {
+                    p1 = controlPolygon[i];
+                    p3 = controlPolygon[i + 1];
+                    p2 = new PointF((p3.X + p1.X) / 2, (p3.Y + p1.Y) / 2);
+                }
+                else
+                {
+                    p1 = controlPolygon[i];
+                    p2 = controlPolygon[i + 1];
+                    if (next2 == controlPolygon.Count - 1)
+                        p3 = controlPolygon[next2];
+                    else
+                        p3 = new PointF((controlPolygon[next2].X + p2.X) / 2, (controlPolygon[next2].Y + p2.Y) / 2);
+                }
+
+                e.Graphics.DrawLines(penCubeCurve, calcaluteCubeСurve(p0, p1, p2, p3));
             }
-            if(currentPoint.X != float.NaN)
+            
+            //рисует Кривую Безье по всем контрольным точкам
+            e.Graphics.DrawLines(penCurve, CalcCurve(controlPolygon.ToArray()));
+
+            if (currentPoint.X != float.NaN)
                 e.Graphics.FillEllipse(brushRed, currentPoint.X - 5, currentPoint.Y - 5, 10, 10);
             pictureBox1.Invalidate();
         }
 
-        private PointF[] calcaluteСurve(PointF p0, PointF p1, PointF p2, PointF p3)
+        //вычисляем кубическую кривую безье,по 4 точкам
+        private PointF[] calcaluteCubeСurve(PointF p0, PointF p1, PointF p2, PointF p3)
         {
-            float disc = (float)0.001;
-            int cnt = (int)(1 / disc) + 1;
-            PointF[] res = new PointF[cnt];
+            float step = 0.001f;
+            int curvePointsNumber = (int)(1 / step) + 1;
+            PointF[] res = new PointF[curvePointsNumber];
 
+            //промежуточные точки Q0, Q1 и Q2 описывают линейные кривые
+            //R0 и R1 описывают квадратичные кривые
+            PointF q0 =  new PointF(0, 0);
+            PointF q1 = q0, q2 = q0, r0 = q0, r1 = q0;
             float t = 0;
-            for (int i = 0; i < cnt; i++)
+            for (int i = 0; i < curvePointsNumber; i++)
             {
-                float mt = 1 - t;
-                float mt2 = mt * mt;
-                float x;
-                float y;
-                float t2 = t * t;
-                x = p3.X * t2 * t;
-                y = p3.Y * t2 * t;
-                x += 3 * t2 * p2.X * mt;
-                y += 3 * t2 * p2.Y * mt;
-                x += 3 * t * p1.X * mt2;
-                y += 3 * t * p1.Y * mt2;
-                x += p0.X * mt2 * mt;
-                y += p0.Y * mt2 * mt;
-
-                t += disc;
+                float param = 1 - t;
+                float paramSq = param * param;
+                q0.X = p0.X * param + p1.X * t; q0.Y = p0.Y * param + p1.Y * t;
+                q1.X = p1.X * param + p2.X * t; q1.Y = p1.Y * param + p2.Y * t;
+                q2.X = p2.X * param + p3.X * t; q2.Y = p2.Y * param + p3.Y * t;
+                r0.X = q0.X * param + q1.X * t; r0.Y = q0.Y * param + q1.Y * t;
+                r1.X = q1.X * param + q2.X * t; r1.Y = q1.Y * param + q2.Y * t;
+                float x = r0.X * param + r1.X * t;
+                float y = r0.Y * param + r1.Y * t;
+                t += step;
                 res[i] = new PointF(x, y);
             }
             return res;
         }
+        
+        //Построение точек кривой Безье произвольной степени
+        private PointF[] CalcCurve(PointF[] points)
+        {
+            float step = 0.001f;
+            int curvePointsNumber = (int)(1 / step) + 1;
+            PointF[] res = new PointF[curvePointsNumber];
+
+            float t = 0;
+            for (int i = 0; i < curvePointsNumber; i++)
+            {
+                float x = 0f, y = 0f;
+                for(int j = 0;j < points.Length; j++)
+                {
+                    float bp = bernsteinPolynom(j, points.Length - 1, t);
+                    x += points[j].X * bp;
+                    y += points[j].Y * bp;
+                }
+                t += step;
+                res[i] = new PointF(x, y);
+            }
+
+            return res;
+        }
+       
+        private float bernsteinPolynom(int i,int n, float t)
+        {
+            float res = 0f;
+            res = (float)factorial(n) / (factorial(i) * factorial(n - i))  * (float)Math.Pow((double)t,(double)i) * (float)Math.Pow((double)(1-t), (double)(n-i));
+            return res;
+        }
+        
+        private int factorial(int n)
+        {
+            int res = 1;
+            for (int i = 1; i <= n; i++)
+                res *= i;
+            return res;
+        }
+        
 
         private void PointslistBox_SelectedIndexChanged(object sender, EventArgs e)
         {
