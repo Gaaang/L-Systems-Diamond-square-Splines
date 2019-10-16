@@ -1,0 +1,3 @@
+F-G-G 120 DOWN
+F>F-G+F+G-F
+G>GG
