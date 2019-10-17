@@ -1,0 +1,10 @@
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\bin\Debug\diamond sq.exe.config
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\bin\Debug\diamond sq.exe
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\bin\Debug\diamond sq.pdb
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\obj\Debug\diamond sq.csprojAssemblyReference.cache
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\obj\Debug\diamond_sq.Properties.Resources.resources
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\obj\Debug\diamond sq.csproj.GenerateResource.cache
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\obj\Debug\diamond sq.csproj.CoreCompileInputs.cache
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\obj\Debug\diamond sq.exe
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\obj\Debug\diamond sq.pdb
+C:\Users\andre\Desktop\diamond sq\diamond sq\diamond sq\obj\Debug\task2.Form1.resources
